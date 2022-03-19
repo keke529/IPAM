@@ -33,5 +33,26 @@ IPAM
   - Unzip the IPAM software under any path.
   - Run "IPAM.install", and if you change the path of IPAM software, please run "IPAM.install" again.
   - Set the environment variables, add PATH or add alias. For example alias IPAM='path/IPAM'.
+  
+-----------------------------------------------------------------------------------------------------------------------------
+
+[USAGE]
+
+  >>> IPAM --file [path] --pathway [path].
+  IPAM --file path/data_folder --pathway path/pathway_folder
+  IPAM --file data_folder --pathway pathway_folder
+  
+--file - The first parameter of IPAM.
+  - The path of the input data, all files in the folder will be read automatically, both absolute and relative path are allowed.
+  
+--pathway - The second parameter of IPAM.
+  - The path of the pathway input, all files in pathway will be calculated in this analysis, each pathway contains the gene symbol list in the pathway.
+  
+-----------------------------------------------------------------------------------------------------------------------------
+
+[EXAMPLE]
+
+  ./IPAM --file ${pw_work}/IPAM.files/IPAM.test --pathway ${pw_work}/IPAM.files/IPAM.KEGG"
+
 
 ===============================================================================================================================
