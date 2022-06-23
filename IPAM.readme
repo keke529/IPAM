@@ -53,6 +53,8 @@ IPAM
 [EXAMPLE]
 
   ./IPAM --file ${pw_work}/IPAM.files/IPAM.test --pathway ${pw_work}/IPAM.files/IPAM.KEGG"
+  
+  NOTE:the KEGG pathways data were download from KEGG database in May, 2019, which contains 318 KEGG pathways.
 
 
 ===============================================================================================================================
