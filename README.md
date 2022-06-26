@@ -1,4 +1,3 @@
-===========================================================================
 [Pipeline]
 
 IPAM
@@ -68,4 +67,4 @@ IPAM
   In the analysis of IPAM article, We used the TCGA gene expression matrix calculated by UCSC Toil RNAseq Recompute Compendium, which is available at the website https://xenabrowser.net/datapages/?dataset=tcga_RSEM_gene_fpkm&host=https%3A%2F%2Ftoil.xenahubs.net&removeHub=https%3A%2F%2Fxena.treehouse.gi.ucsc.edu%3A443.
 
 
-============================================================================
+===========================================================================
