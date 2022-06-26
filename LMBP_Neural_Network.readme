@@ -1,0 +1,2 @@
+LMBP_Neural_Network.m is the cancer classification model based on pathway activity data, which can be run on MATLAB platform (version matlab 2019a).
+LMBP_Neural_Network_test_data is the input data of LMBP_Neural_Network.m model, with each row representing the pathway activity data of each sample, and the first column is the labels of samples ("1"for tumour and "0"for normal).
