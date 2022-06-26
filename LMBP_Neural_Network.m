@@ -1,6 +1,6 @@
 clear
 clc
-data=importdata("C:\Users\12698\Desktop\The-LAST-LAST\THCA");
+data=importdata("LMBP_Neural_Network_test_data.txt");
 A = data.data;
 A = mapminmax(A', 0, 1)';
 P_data = A;
@@ -67,7 +67,7 @@ for k=1:5
         end
     end
     accuracyTest=countTest/n;
-    disp(['Number of test samples:',num2str(n),' Number of correct test samples:',num2str(countTest),' Accuracy:',num2str(accuracyTest),' AUC£º',num2str(auc)]);
+    disp(['Number of test samples:',num2str(n),' Number of correct test samples:',num2str(countTest),' Accuracy:',num2str(accuracyTest),' AUCÂ£Âº',num2str(auc)]);
     averageAUC=auc+averageAUC;
     averageAccuracyTest=accuracyTest+averageAccuracyTest;
 end
