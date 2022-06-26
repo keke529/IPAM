@@ -1,5 +1,4 @@
-===============================================================================================================================
-
+=============================================================================
 [Pipeline]
 
 IPAM
@@ -55,14 +54,18 @@ IPAM
   - The path of the pathway input, all pathways in the folder will be read automatically and calculated in this analysis, each pathway contains the gene symbol list in the pathway.
 
   Pathway activity of input data will be calculated and deposited in IPAM.result/
+
+
 -----------------------------------------------------------------------------------------------------------------------------
 
 [EXAMPLE]
 
   sh IPAM --file IPAM.files/IPAM.test --pathway IPAM.files/IPAM.KEGG
   
+  The pathway activity of IPAM.test data will be deposited in IPAM.result/
+  
   NOTE:the KEGG pathways data were download from KEGG database in May, 2019, which contains 318 KEGG pathways.
   In the analysis of IPAM article, We used the TCGA gene expression matrix calculated by UCSC Toil RNAseq Recompute Compendium, which is available at the website https://xenabrowser.net/datapages/?dataset=tcga_RSEM_gene_fpkm&host=https%3A%2F%2Ftoil.xenahubs.net&removeHub=https%3A%2F%2Fxena.treehouse.gi.ucsc.edu%3A443.
 
 
-===============================================================================================================================
+============================================================================
