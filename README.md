@@ -43,7 +43,7 @@ IPAM
 
 [USAGE]
 
-  >>> sh IPAM --file [path] --pathway [path]
+  sh IPAM --file [path] --pathway [path]
   sh IPAM --file data_folder --pathway pathway_folder
   
 --file - The first parameter of IPAM.
