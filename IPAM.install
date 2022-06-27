@@ -1,0 +1,30 @@
+#!/bin/bash
+
+echo "=============================================================================="
+echo "|                                                                            |"
+echo "|   [Installing...]                                                          |"
+echo "|                                                                            |"
+
+pwd=`pwd`
+echo "pw_work='${pwd}'" > ${pwd}/IPAM.files/IPAM.code/IPAM_2
+cat ${pwd}/IPAM.files/IPAM.code/IPAM_1 ${pwd}/IPAM.files/IPAM.code/IPAM_2 ${pwd}/IPAM.files/IPAM.code/IPAM_3 > IPAM
+chmod -R 755 IPAM
+
+b=''
+for ((i=0;$i<=100;i+=2))
+do
+	printf "    IPAM install:[%-50s]%d%%\r" $b $i
+	sleep 0.02
+	b=#$b
+done
+
+# echo
+
+echo "|----------------------------------------------------------------------------|"
+echo "|                                                                            |"
+echo "|   [REMINDER]                                                               |"
+echo "|                                                                            |"
+echo "|   Successful installation                                                  |"
+echo "|   (If you change the path of IPAM, please run this program again.)         |"
+echo "|                                                                            |"
+echo "=============================================================================="
