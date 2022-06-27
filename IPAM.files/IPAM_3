@@ -1,0 +1,388 @@
+pw_result=${pw_work}/IPAM.result
+pw_code=${pw_work}/IPAM.files/IPAM.code
+
+if [ ${#} != "5" ]; then
+	echo ""
+	echo "================================================================================"
+	echo "|                                                                              |"
+	echo "|                                                                              |"
+	echo "|    [USAGE]                                                                   |"
+	echo "|                                                                              |"
+	echo "|    >>> IPAM [--rank/--dup_rank]  [--file path] [--pathway path]              |"
+	echo "|                                                                              |"
+	echo "|    --rank     - Choose this parameter to run the old version of IPAM (v1.0)  |"
+	echo "|    --dup_rank - Choose this parameter to run the new version of IPAM (v2.0)  |"
+	echo "|                                                                              |"
+	echo "|                                                                              |"
+	echo "|    --file - The first parameter of IPAM.                                     |"
+	echo "|           - The path of the input data, all files in the folder will be read |"
+	echo "|             automatically, both absolute and relative path are allowed.      |"
+	echo "|                                                                              |"
+	echo "|    --pathway - The second parameter of IPAM.                                 |"
+	echo "|              - The path of the pathway input, all files in pathway will be   |"
+	echo "|                calculated in this analysis, each pathway contains the gene   |"
+	echo "|                symbol list in the pathway.                                   |"
+	echo "|                                                                              |"
+	echo "|    [example]                                                                 |"
+	echo "|    IPAM --rank --file path/data_folder --pathway path/pathway_folder         |"
+	echo "|    IPAM --dup_rank --file data_folder --pathway pathway_folder               |"
+	echo "|                                                                              |"
+	echo "|                                                                              |"
+	echo "|------------------------------------------------------------------------------|"
+	echo "|                                                                              |"
+	echo "|                                                                              |"
+	echo "|    [EXAMPLE]                                                                 |"
+	echo "|                                                                              |"
+	echo "|        ./IPAM --dup_rank --file ${pw_work}/IPAM.files/IPAM.test --pathway ${pw_work}/IPAM.files/IPAM.KEGG"
+	echo "|                                                                              |"
+	echo "|                                                                              |"
+	echo "================================================================================"
+	echo ""
+elif [ ${#} == "5" ]; then
+	if [ ${1} == "--rank" ]; then
+		# old version (IPAM v1.0)
+		file_IPAM=`echo ${3} | rev | cut -d\/ -f1 | rev`
+		mkdir -p ${pw_result}/${file_IPAM} ; rm -rf ${pw_result}/${file_IPAM} ; mkdir -p ${pw_result}/${file_IPAM}
+		pw_IPAM=${pw_result}/${file_IPAM}
+		
+		echo ""
+		echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+		echo "-- File [${file_IPAM}] calculating..."
+		echo "-- Filename ${3}"
+		echo "-- Pathway ${5}"
+		echo ""
+		echo ".. Program Running .."
+		echo ""
+	
+		mkdir ${pw_IPAM}/cal
+		filelist=`ls ${3}/`
+		for i in $filelist
+		do
+			mkdir ${pw_IPAM}/cal/$i
+			WC=`awk -F '\t' '{print NF}' ${3}/$i | uniq`
+			for (( j=2; j<=$WC; j++ ))
+			do
+				awk -F '\t' '{print $1,$"'$j'"}' ${3}/$i > ${pw_IPAM}/cal/$i/$j
+			done
+			ls ${pw_IPAM}/cal/$i/ | while read line; do sed -i 's/ /\t/g' ${pw_IPAM}/cal/$i/${line}; done
+		done
+	
+		# echo
+		echo ">> Step 1/5. Finished." 
+		
+		mkdir ${pw_IPAM}/Sort
+		filelist=`ls ${pw_IPAM}/cal/`
+		for i in $filelist
+		do
+			mkdir ${pw_IPAM}/Sort/$i
+			WC=`cat ${3}/$i | wc -l`
+			ls ${pw_IPAM}/cal/$i/ | while read line; do sort -g -k 2 ${pw_IPAM}/cal/$i/${line} | awk -F '\t' '{if($1=="gene") {print $1"\t"$2} else {print $1"\t"int(NR/10)*10+1}}' | sort -t $'\t' -k 1,1 > ${pw_IPAM}/Sort/$i/${line}; done
+			ls ${pw_IPAM}/Sort/$i/ | while read line; do sed -i 's/ /\t/g' ${pw_IPAM}/Sort/$i/${line}; done
+		done
+	
+		# echo
+		echo ">> Step 2/5. Finished." 
+	
+		mkdir ${pw_IPAM}/Merge
+		filelist=`ls ${pw_IPAM}/Sort/`
+		for i in $filelist
+		do
+			paste ${pw_IPAM}/Sort/$i/* | awk -F '\t' '{for(i=1;i<=NF;i++) {if(i<=2) {printf $i"\t"} else if(i%2==0) {printf $i"\t"}} printf "\n"}' > ${pw_IPAM}/Merge/$i
+		done
+		ls ${pw_IPAM}/Merge/ | while read line; do sed -i 's/ /\t/g' ${pw_IPAM}/Merge/${line}; done
+	
+		# echo
+		echo ">> Step 3/5. Finished." 
+		
+		mkdir ${pw_IPAM}/LAST
+		genelist=`ls ${5}/`
+		for l in $genelist
+		do
+			mkdir ${pw_IPAM}/overlap
+			filelist=`ls ${pw_IPAM}/Merge/`
+			for i in $filelist
+			do
+				cat ${5}/$l | while read line; do awk -F '\t' '{if($1=="'${line}'") print $0}' ${pw_IPAM}/Merge/$i >> ${pw_IPAM}/overlap/$i; done
+			done
+			mkdir ${pw_IPAM}/cal-last
+			filelist=`ls ${pw_IPAM}/overlap/`
+			for i in $filelist
+			do
+				mkdir ${pw_IPAM}/cal-last/$i
+				WC=`awk -F '\t' '{print NF}' ${3}/$i | uniq`
+				for (( j=2; j<=$WC; j++ ))
+				do
+					awk -F '\t' '{print $1"\t"$'$j'}' ${pw_IPAM}/overlap/$i > ${pw_IPAM}/cal-last/$i/$j
+				done
+				ls ${pw_IPAM}/cal-last/$i/ | while read line; do sed -i 's/ /\t/g' ${pw_IPAM}/cal-last/$i/${line}; done
+			done
+	
+			mkdir ${pw_IPAM}/Total
+			filelist=`ls ${pw_IPAM}/cal-last/`
+			for i in $filelist
+			do
+				mkdir ${pw_IPAM}/Total/$i
+				for j in `ls ${pw_IPAM}/cal-last/$i/`
+				do
+					nozero=`awk -F '\t' '{if(NR!=1) print $2}' ${pw_IPAM}/cal-last/$i/$j | wc -l`
+					awk -F '\t' '{a[2]+=$2;print}END{print "TOTAL""\t"a[2]/'$nozero'}' ${pw_IPAM}/cal-last/$i/$j > ${pw_IPAM}/Total/$i/$j
+				done
+				ls ${pw_IPAM}/Total/$i/ | while read line; do sed -i 's/ /\t/g' ${pw_IPAM}/Total/$i/${line}; done
+			done
+	
+			mkdir ${pw_IPAM}/Merge-last
+			filelist=`ls ${pw_IPAM}/Total/`
+			for i in $filelist
+			do
+				paste ${pw_IPAM}/Total/$i/* | awk -F '\t' '{for(i=1;i<=NF;i++) {if(i<=2) {printf $i"\t"} else if(i%2==0) {printf $i"\t"}} printf "\n"}' > ${pw_IPAM}/Merge-last/$i
+			done
+			ls ${pw_IPAM}/Merge-last/ | while read line; do sed -i 's/ /\t/g' ${pw_IPAM}/Merge-last/${line}; done
+	
+			mkdir ${pw_IPAM}/One-last
+			filelist=`ls ${pw_IPAM}/Merge-last/`
+			for i in $filelist
+			do
+				sed -n '1p' ${pw_IPAM}/Merge-last/$i > ${pw_IPAM}/One-last/$i
+				sed -n '$p' ${pw_IPAM}/Merge-last/$i >> ${pw_IPAM}/One-last/$i
+			done
+			ls ${pw_IPAM}/One-last/ | while read line; do sed -i 's/ /\t/g' ${pw_IPAM}/One-last/${line}; done
+	
+			mkdir ${pw_IPAM}/last
+			filelist=`ls ${pw_IPAM}/One-last/`
+			for i in $filelist
+			do
+				awk -F '\t' '{for(i=0;++i<=NF;)a[i]=a[i]?a[i] FS $i:$i}END{for(i=0;i++<NF;)print a[i]}' ${pw_IPAM}/One-last/$i > ${pw_IPAM}/last/$i
+				sed -i '/^\s*$/d' ${pw_IPAM}/last/$i
+				sed -i 's/ /\t/g' ${pw_IPAM}/last/$i
+			done
+	
+			mkdir ${pw_IPAM}/LAST/$l
+			cp -rf ${pw_IPAM}/last/ ${pw_IPAM}/LAST/$l/
+			rm -rf ${pw_IPAM}/overlap/
+			rm -rf ${pw_IPAM}/cal-last/
+			rm -rf ${pw_IPAM}/Total/
+			rm -rf ${pw_IPAM}/Merge-last/
+			rm -rf ${pw_IPAM}/One-last/
+			rm -rf ${pw_IPAM}/last/
+		done
+	
+		# echo 
+		echo ">> Step 4/5. Finished." 
+	
+		mkdir ${pw_IPAM}/LAST-TOTAL
+		ls ${3}/ | while read line; do ls ${pw_IPAM}/LAST/ | awk -F '\t' '{for(i=0;++i<=NF;)a[i]=a[i]?a[i] FS $i:$i}END{for(i=0;i++<NF;)print a[i]}' | awk -F '\t' '{print "pathways""\t"$0"\t"}' > ${pw_IPAM}/LAST-TOTAL/${line}; done
+		ls ${pw_IPAM}/LAST-TOTAL/ | while read line; do sed -i 's/ /\t/g' ${pw_IPAM}/LAST-TOTAL/${line}; done
+		ls ${3}/ | while read line; do paste ${pw_IPAM}/LAST/*/last/${line} | awk -F '\t' '{for(i=1;i<=NF;i++) {if(i<=2) {printf $i"\t"} else if(i%2==0) {printf $i"\t"}} printf "\n"}' >> ${pw_IPAM}/LAST-TOTAL/${line}; done
+		ls ${pw_IPAM}/LAST-TOTAL/ | while read line; do sed -i '/TOTAL/d' ${pw_IPAM}/LAST-TOTAL/${line}; done
+		mkdir ${pw_result}/${file_IPAM}.result
+		ls ${pw_IPAM}/LAST-TOTAL/ | while read line; do awk -F '\t' '{for(i=0;++i<=NF;)a[i]=a[i]?a[i] FS $i:$i}END{for(i=0;i++<NF;)print a[i]}' ${pw_IPAM}/LAST-TOTAL/${line} > ${pw_result}/${file_IPAM}.result/${line}; done
+		ls ${pw_result}/${file_IPAM}.result/ | while read line; do sed -i '/^\s*$/d' ${pw_result}/${file_IPAM}.result/${line}; done
+		ls ${pw_result}/${file_IPAM}.result/ | while read line; do sed -i 's/ /\t/g' ${pw_result}/${file_IPAM}.result/${line}; done
+	
+		echo ">> Step 5/5. Finished."
+		rm -rf ${pw_result}/${file_IPAM}
+		rm -rf ${pw_IPAM}/cal/
+		rm -rf ${pw_IPAM}/Sort/
+		rm -rf ${pw_IPAM}/Merge/
+		rm -rf ${pw_IPAM}/LAST/
+		rm -rf ${pw_IPAM}/LAST-TOTAL/
+	
+		echo ""
+		echo "-- Result   ${pw_IPAM}.result"
+		echo ""
+		echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+		echo ""
+	elif [ ${1} == "--dup_rank" ]; then
+		# new version (IPAM v2.0)
+		file_IPAM=`echo ${3} | rev |cut -d\/ -f1 | rev`
+		mkdir -p ${pw_result}/${file_IPAM} ; rm -rf ${pw_result}/${file_IPAM} ; mkdir -p ${pw_result}/${file_IPAM}
+		pw_IPAM=${pw_result}/${file_IPAM}
+		
+		echo ""
+		echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+		echo "-- File [${file_IPAM}] calculating..."
+		echo "-- Filename ${3}"
+		echo "-- Pathway ${5}"
+		echo ""
+		echo ".. Program Running .."
+		echo ""
+	
+		mkdir ${pw_IPAM}/cal
+		filelist=`ls ${3}/`
+		for i in $filelist
+		do
+			mkdir ${pw_IPAM}/cal/$i
+			WC=`awk -F '\t' '{print NF}' ${3}/$i | uniq`
+			for (( j=2; j<=$WC; j++ ))
+			do
+				awk -F '\t' '{print $1,$"'$j'"}' ${3}/$i > ${pw_IPAM}/cal/$i/$j
+			done
+			ls ${pw_IPAM}/cal/$i/ | while read line; do sed -i 's/ /\t/g' ${pw_IPAM}/cal/$i/${line}; done
+		done
+	
+		# echo
+		echo ">> Step 1/5. Finished." 
+		
+		mkdir ${pw_IPAM}/Sort
+		filelist=`ls ${pw_IPAM}/cal/`
+		for i in $filelist
+		do
+			mkdir ${pw_IPAM}/Sort/$i
+			WC=`cat ${3}/$i | wc -l`
+			ls ${pw_IPAM}/cal/$i/ | while read line; do python ${pw_code}/rank.py ${pw_IPAM}/cal/$i/${line} ${pw_IPAM}/Sort/$i/${line}; done
+			ls ${pw_IPAM}/Sort/$i/ | while read line; do sed -i 's/ /\t/g' ${pw_IPAM}/Sort/$i/${line}; done
+		done
+	
+		# echo
+		echo ">> Step 2/5. Finished." 
+	
+		mkdir ${pw_IPAM}/Merge1
+		mkdir ${pw_IPAM}/Merge
+		filelist=`ls ${pw_IPAM}/Sort/`
+		for i in $filelist
+		do
+			python ${pw_code}/merge2matrix.py ${pw_IPAM}/Sort/$i/ ${pw_IPAM}/Merge1/$i
+			python ${pw_code}/IPAM_scale.py ${pw_IPAM}/Merge1/$i ${pw_IPAM}/Merge/$i
+		done
+		ls ${pw_IPAM}/Merge/ | while read line; do sed -i 's/ /\t/g' ${pw_IPAM}/Merge/${line}; done
+	
+		# echo
+		echo ">> Step 3/5. Finished." 
+		
+		mkdir ${pw_IPAM}/LAST
+		genelist=`ls ${5}/`
+		for l in $genelist
+		do
+			mkdir ${pw_IPAM}/overlap
+			filelist=`ls ${pw_IPAM}/Merge/`
+			for i in $filelist
+			do
+				cat ${5}/$l | while read line; do awk -F '\t' '{if($1=="'${line}'") print $0}' ${pw_IPAM}/Merge/$i >> ${pw_IPAM}/overlap/$i; done
+			done
+			mkdir ${pw_IPAM}/cal-last
+			filelist=`ls ${pw_IPAM}/overlap/`
+			for i in $filelist
+			do
+				mkdir ${pw_IPAM}/cal-last/$i
+				WC=`awk -F '\t' '{print NF}' ${3}/$i | uniq`
+				for (( j=2; j<=$WC; j++ ))
+				do
+					awk -F '\t' '{print $1"\t"$'$j'}' ${pw_IPAM}/overlap/$i > ${pw_IPAM}/cal-last/$i/$j
+				done
+				ls ${pw_IPAM}/cal-last/$i/ | while read line; do sed -i 's/ /\t/g' ${pw_IPAM}/cal-last/$i/${line}; done
+			done
+	
+			mkdir ${pw_IPAM}/Total
+			filelist=`ls ${pw_IPAM}/cal-last/`
+			for i in $filelist
+			do
+				mkdir ${pw_IPAM}/Total/$i
+				for j in `ls ${pw_IPAM}/cal-last/$i/`
+				do
+					nozero=`awk -F '\t' '{if(NR!=1) print $2}' ${pw_IPAM}/cal-last/$i/$j | wc -l`
+					awk -F '\t' '{a[2]+=$2;print}END{print "TOTAL""\t"a[2]/'$nozero'}' ${pw_IPAM}/cal-last/$i/$j > ${pw_IPAM}/Total/$i/$j
+				done
+				ls ${pw_IPAM}/Total/$i/ | while read line; do sed -i 's/ /\t/g' ${pw_IPAM}/Total/$i/${line}; done
+			done
+	
+			mkdir ${pw_IPAM}/Merge-last
+			filelist=`ls ${pw_IPAM}/Total/`
+			for i in $filelist
+			do
+				python ${pw_code}/merge2matrix.py ${pw_IPAM}/Total/$i/ ${pw_IPAM}/Merge-last/$i
+			done
+			ls ${pw_IPAM}/Merge-last/ | while read line; do sed -i 's/ /\t/g' ${pw_IPAM}/Merge-last/${line}; done
+	
+			mkdir ${pw_IPAM}/One-last
+			filelist=`ls ${pw_IPAM}/Merge-last/`
+			for i in $filelist
+			do
+				sed -n '1p' ${pw_IPAM}/Merge-last/$i > ${pw_IPAM}/One-last/$i
+				sed -n '$p' ${pw_IPAM}/Merge-last/$i >> ${pw_IPAM}/One-last/$i
+			done
+			ls ${pw_IPAM}/One-last/ | while read line; do sed -i 's/ /\t/g' ${pw_IPAM}/One-last/${line}; done
+	
+			mkdir ${pw_IPAM}/last
+			filelist=`ls ${pw_IPAM}/One-last/`
+			for i in $filelist
+			do
+				awk -F '\t' '{for(i=0;++i<=NF;)a[i]=a[i]?a[i] FS $i:$i}END{for(i=0;i++<NF;)print a[i]}' ${pw_IPAM}/One-last/$i > ${pw_IPAM}/last/$i
+				sed -i '/^\s*$/d' ${pw_IPAM}/last/$i
+				sed -i 's/ /\t/g' ${pw_IPAM}/last/$i
+			done
+	
+			mkdir ${pw_IPAM}/LAST/$l
+			cp -rf ${pw_IPAM}/last/ ${pw_IPAM}/LAST/$l/
+			rm -rf ${pw_IPAM}/overlap/
+			rm -rf ${pw_IPAM}/cal-last/
+			rm -rf ${pw_IPAM}/Total/
+			rm -rf ${pw_IPAM}/Merge-last/
+			rm -rf ${pw_IPAM}/One-last/
+			rm -rf ${pw_IPAM}/last/
+		done
+	
+		# echo 
+		echo ">> Step 4/5. Finished." 
+	
+		mkdir ${pw_IPAM}/LAST-TOTAL
+		ls ${3}/ | while read line; do ls ${pw_IPAM}/LAST/ | awk -F '\t' '{for(i=0;++i<=NF;)a[i]=a[i]?a[i] FS $i:$i}END{for(i=0;i++<NF;)print a[i]}' | awk -F '\t' '{print "pathways""\t"$0"\t"}' > ${pw_IPAM}/LAST-TOTAL/${line}; done
+		ls ${pw_IPAM}/LAST-TOTAL/ | while read line; do sed -i 's/ /\t/g' ${pw_IPAM}/LAST-TOTAL/${line}; done
+		ls ${3}/ | while read line; do paste ${pw_IPAM}/LAST/*/last/${line} | awk -F '\t' '{for(i=1;i<=NF;i++) {if(i<=2) {printf $i"\t"} else if(i%2==0) {printf $i"\t"}} printf "\n"}' >> ${pw_IPAM}/LAST-TOTAL/${line}; done
+		ls ${pw_IPAM}/LAST-TOTAL/ | while read line; do sed -i '/TOTAL/d' ${pw_IPAM}/LAST-TOTAL/${line}; done
+		mkdir ${pw_result}/${file_IPAM}.result
+		ls ${pw_IPAM}/LAST-TOTAL/ | while read line; do awk -F '\t' '{for(i=0;++i<=NF;)a[i]=a[i]?a[i] FS $i:$i}END{for(i=0;i++<NF;)print a[i]}' ${pw_IPAM}/LAST-TOTAL/${line} > ${pw_result}/${file_IPAM}.result/${line}; done
+		ls ${pw_result}/${file_IPAM}.result/ | while read line; do sed -i '/^\s*$/d' ${pw_result}/${file_IPAM}.result/${line}; done
+		ls ${pw_result}/${file_IPAM}.result/ | while read line; do sed -i 's/ /\t/g' ${pw_result}/${file_IPAM}.result/${line}; done
+	
+		echo ">> Step 5/5. Finished."
+		rm -rf ${pw_result}/${file_IPAM}
+		rm -rf ${pw_IPAM}/cal/
+		rm -rf ${pw_IPAM}/Sort/
+		rm -rf ${pw_IPAM}/Merge/
+		rm -rf ${pw_IPAM}/LAST/
+		rm -rf ${pw_IPAM}/LAST-TOTAL/
+	
+		echo ""
+		echo "-- Result   ${pw_IPAM}.result"
+		echo ""
+		echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+		echo ""
+	else
+		echo ""
+		echo "================================================================================"
+		echo "|                                                                              |"
+		echo "|                                                                              |"
+		echo "|    [USAGE]                                                                   |"
+		echo "|                                                                              |"
+		echo "|    >>> IPAM [--rank/--dup_rank]  [--file path] [--pathway path]              |"
+		echo "|                                                                              |"
+		echo "|    --rank     - Choose this parameter to run the old version of IPAM (v1.0)  |"
+		echo "|    --dup_rank - Choose this parameter to run the new version of IPAM (v2.0)  |"
+		echo "|                                                                              |"
+		echo "|                                                                              |"
+		echo "|    --file - The first parameter of IPAM.                                     |"
+		echo "|           - The path of the input data, all files in the folder will be read |"
+		echo "|             automatically, both absolute and relative path are allowed.      |"
+		echo "|                                                                              |"
+		echo "|    --pathway - The second parameter of IPAM.                                 |"
+		echo "|              - The path of the pathway input, all files in pathway will be   |"
+		echo "|                calculated in this analysis, each pathway contains the gene   |"
+		echo "|                symbol list in the pathway.                                   |"
+		echo "|                                                                              |"
+		echo "|    [example]                                                                 |"
+		echo "|    IPAM --rank --file path/data_folder --pathway path/pathway_folder         |"
+		echo "|    IPAM --dup_rank --file data_folder --pathway pathway_folder               |"
+		echo "|                                                                              |"
+		echo "|                                                                              |"
+		echo "|------------------------------------------------------------------------------|"
+		echo "|                                                                              |"
+		echo "|                                                                              |"
+		echo "|    [EXAMPLE]                                                                 |"
+		echo "|                                                                              |"
+		echo "|        ./IPAM --dup_rank --file ${pw_work}/IPAM.files/IPAM.test --pathway ${pw_work}/IPAM.files/IPAM.KEGG"
+		echo "|                                                                              |"
+		echo "|                                                                              |"
+		echo "================================================================================"
+		echo ""
+	fi
+fi
