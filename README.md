@@ -44,6 +44,7 @@ IPAM
 [USAGE]
 
   sh IPAM --rank --file data_folder --pathway pathway_folder
+  
   sh IPAM --dup_rank --file data_folder --pathway pathway_folder
 
 --rank - If you choose this parameter, IPAM will ranked the expression values directly in each sample without consideration of duplication of gene expression.
