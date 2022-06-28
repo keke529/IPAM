@@ -63,10 +63,12 @@ IPAM
 [EXAMPLE]
 
   sh IPAM --rank --file IPAM.files/IPAM.test --pathway IPAM.files/IPAM.KEGG
+  
   The gene expression values of each sample in IPAM.test will be ranked directly. The result contain the pathway activity of 318 KEGG pathways for each sample and will be deposited in IPAM.result.
 
 
   sh IPAM --dup_rank --file IPAM.files/IPAM.test --pathway IPAM.files/IPAM.KEGG
+  
   The unique gene expression values of each sample in IPAM.test will be ranked, and then the rank will be assign to each gene. The result contain the pathway activity of 318 KEGG pathways for each sample and will be deposited in IPAM.result.
 
   
