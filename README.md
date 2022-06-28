@@ -43,14 +43,17 @@ IPAM
 
 [USAGE]
 
-  sh IPAM --file [path] --pathway [path]
-  sh IPAM --file data_folder --pathway pathway_folder
+  sh IPAM --rank --file data_folder --pathway pathway_folder
+  sh IPAM --dup_rank --file data_folder --pathway pathway_folder
+
+--rank - If you choose this parameter, IPAM will ranked the expression values directly in each sample without consideration of duplication of gene expression.
+--dup_rank - If you choose this parameter, IPAM will ranked all unique gene expression values and then assign the rank to each gene.
   
---file - The first parameter of IPAM.
-  - The path of the input data, all files in the folder will be read automatically, both absolute and relative path are allowed.
+--file data_folder
+  - The path of the input data, both absolute and relative path are allowed. All files in the folder will be read automatically. Each file in the folder is a gene expression matrix (genes vs samples). The example data is in IPAM.files/IPAM.test.
   
---pathway - The second parameter of IPAM.
-  - The path of the pathway input, all pathways in the folder will be read automatically and calculated in this analysis, each pathway contains the gene symbol list in the pathway.
+--pathway pathway_folder
+  - The path of the pathway input, all pathways in the folder will be read automatically and calculated in this analysis, each pathway contains the gene symbol list in the pathway, The example data are in IPAM.files/IPAM.KEGG.
 
   Pathway activity of input data will be calculated and deposited in IPAM.result/
 
@@ -59,12 +62,20 @@ IPAM
 
 [EXAMPLE]
 
-  sh IPAM --file IPAM.files/IPAM.test --pathway IPAM.files/IPAM.KEGG
+  sh IPAM --rank --file IPAM.files/IPAM.test --pathway IPAM.files/IPAM.KEGG
+  The gene expression values of each sample in IPAM.test will be ranked directly. The result contain the pathway activity of 318 KEGG pathways for each sample and will be deposited in IPAM.result.
+
+
+  sh IPAM --dup_rank --file IPAM.files/IPAM.test --pathway IPAM.files/IPAM.KEGG
+  The unique gene expression values of each sample in IPAM.test will be ranked, and then the rank will be assign to each gene. The result contain the pathway activity of 318 KEGG pathways for each sample and will be deposited in IPAM.result.
+
   
-  The pathway activity of IPAM.test data will be deposited in IPAM.result/
+-----------------------------------------------------------------------------------------------------------------------------
+  
   
   NOTE:the KEGG pathways data were download from KEGG database in May, 2019, which contains 318 KEGG pathways.
-  In the analysis of IPAM article, We used the TCGA gene expression matrix calculated by UCSC Toil RNAseq Recompute Compendium, which is available at the website https://xenabrowser.net/datapages/?dataset=tcga_RSEM_gene_fpkm&host=https%3A%2F%2Ftoil.xenahubs.net&removeHub=https%3A%2F%2Fxena.treehouse.gi.ucsc.edu%3A443.
+  In the analysis of IPAM article, we used the TCGA gene expression matrix calculated by UCSC Toil RNAseq Recompute Compendium (https://xenabrowser.net/datapages/?dataset=tcga_RSEM_gene_fpkm&host=https%3A%2F%2Ftoil.xenahubs.net&removeHub=http%3A%2F%2F127.0.0.1%3A7222). The TCGA data can be downloaded at https://toil-xena-hub.s3.us-east-1.amazonaws.com/download/tcga_RSEM_gene_fpkm.gz. In our analysis, to reduce the effect of sequencing, we only focused on protein-coding genes, which were selected according to gencode.v23.annotation.
+  We used default parameters for iPAS, Pathifier, PLAGE, IndividPath, and ssGSEA in the manuscript.
 
 
 ===========================================================================
