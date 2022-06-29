@@ -46,9 +46,9 @@ IPAM
   sh IPAM --rank --file data_folder --pathway pathway_folder
   sh IPAM --dup_rank --file data_folder --pathway pathway_folder
 
---rank - If you choose this parameter, IPAM will ranked the expression values directly in each sample without consideration of duplication of gene expression.
+--rank - If you choose this parameter, IPAM will rank the expression values directly in each sample without consideration of duplication of gene expression.
 
---dup_rank - If you choose this parameter, IPAM will ranked all unique gene expression values and then assign the rank to each gene.
+--dup_rank - If you choose this parameter, IPAM will rank all unique gene expression values and then assign the rank to each gene.
   
 --file data_folder
   - The path of the input data, both absolute and relative path are allowed. All files in the folder will be read automatically. Each file in the folder is a gene expression matrix (genes vs samples). The example data is in IPAM.files/IPAM.test.
