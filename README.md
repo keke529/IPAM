@@ -16,7 +16,7 @@ IPAM
 
 [Contact]
 
-  keke529@stu.xjtu.edu.cn
+  kexin520290@163.com
   
   1269880460@qq.com
 
